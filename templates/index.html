@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ASCII Art Converter</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>ASCII Art Converter</h1>
+      <p class="subtitle">Превращаем картинки в текстовое искусство</p>
+    </header>
+
+    <section class="card upload-card">
+      <form method="POST" action="/convert" enctype="multipart/form-data" id="convertForm">
+        <div class="drop-zone" id="dropZone">
+          <div class="drop-zone__icon">🖼️</div>
+          <p class="drop-zone__text">Перетащите изображение или <label for="imageInput" class="link">выберите файл</label></p>
+          <p class="drop-zone__hint">JPG, PNG, BMP, WEBP — до 10 МБ</p>
+          <input type="file" id="imageInput" name="image" accept="image/*" hidden>
+          <div class="drop-zone__preview" id="preview" hidden>
+            <img id="previewImg" src="" alt="Превью">
+            <span id="previewName"></span>
+          </div>
+        </div>
+
+        <div class="controls">
+          <div class="control-group">
+            <label for="width">Ширина (символов)</label>
+            <div class="range-row">
+              <input type="range" id="widthRange" name="width" min="20" max="200" value="{{ width or 80 }}"
+                     oninput="document.getElementById('widthVal').textContent = this.value">
+              <span id="widthVal">{{ width or 80 }}</span>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <label for="charset">Набор символов</label>
+            <select id="charset" name="charset">
+              {% for cs in charsets %}
+              <option value="{{ cs }}" {% if charset == cs %}selected{% endif %}>{{ cs }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="control-group control-group--checkbox">
+            <label class="checkbox-label">
+              <input type="checkbox" name="invert" {% if invert %}checked{% endif %}>
+              Инвертировать (для светлого фона)
+            </label>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn--primary" id="convertBtn">Конвертировать</button>
+      </form>
+    </section>
+
+    {% if error %}
+    <div class="alert alert--error">{{ error }}</div>
+    {% endif %}
+
+    {% if ascii_art %}
+    <section class="card result-card">
+      <div class="result-header">
+        <div class="result-meta">
+          <span class="badge">{{ filename }}</span>
+          <span class="badge">{{ width }} симв. шириной</span>
+          <span class="badge">{{ line_count }} строк</span>
+          <span class="badge">{{ charset }}</span>
+        </div>
+        <div class="result-actions">
+          <button class="btn btn--secondary" onclick="copyArt()">Копировать</button>
+          <form method="POST" action="/download" style="display:inline">
+            <input type="hidden" name="ascii_art" value="{{ ascii_art }}">
+            <input type="hidden" name="filename" value="{{ filename }}">
+            <button type="submit" class="btn btn--secondary">Скачать .txt</button>
+          </form>
+        </div>
+      </div>
+      <div class="ascii-output-wrap">
+        <pre class="ascii-output" id="asciiOutput">{{ ascii_art }}</pre>
+      </div>
+    </section>
+    {% endif %}
+  </div>
+
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
